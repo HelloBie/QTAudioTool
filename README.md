@@ -14,3 +14,5 @@
     caf转为m4a
  
     混音
+
+支持cocoapods:pod 'QTAudioTool'
