@@ -100,10 +100,10 @@
 		95C4001924CB03FD00B3885F /* QTAudioTool */ = {
 			isa = PBXGroup;
 			children = (
-				95C4001A24CB03FD00B3885F /* QTAudioTool.m */,
+				95C4001D24CB03FD00B3885F /* lame.h */,
 				95C4001B24CB03FD00B3885F /* libmp3lame.a */,
 				95C4001C24CB03FD00B3885F /* QTAudioTool.h */,
-				95C4001D24CB03FD00B3885F /* lame.h */,
+				95C4001A24CB03FD00B3885F /* QTAudioTool.m */,
 			);
 			path = QTAudioTool;
 			sourceTree = "<group>";

@@ -34,31 +34,38 @@
  
 }
 
-// 拼接
 
-+(void)addAudio:(NSString *)fromPath toAudio:(NSString *)toPath outputPath:(NSString *)outputPath{
-    
-    // 1. 获取两个音频源
-    AVURLAsset *audioAsset1 = [AVURLAsset assetWithURL:[NSURL fileURLWithPath:fromPath]];
-    AVURLAsset *audioAsset2 = [AVURLAsset assetWithURL:[NSURL fileURLWithPath:toPath]];
-    
-    // 2. 获取两个音频素材中的素材轨道
-    AVAssetTrack *audioAssetTrack1 = [[audioAsset1 tracksWithMediaType:AVMediaTypeAudio] firstObject];
-    AVAssetTrack *audioAssetTrack2 = [[audioAsset2 tracksWithMediaType:AVMediaTypeAudio] firstObject];
-    
-    // 3. 向音频合成器, 添加一个空的素材容器
+/// 音频拼接
+/// - Parameters:
+///   - paths: 需要拼接的音频文件路径,会按照数组顺序从头到尾拼接
+///   - outPutFilePath: 拼接文件的保存路径,包含文件名
+///   - audioType: 导出的文件格式,默认m4a
+///   - callBack: 结果回调
++ (void)qt_AudioAppendWithPaths:(NSArray *)paths
+                 outPutFilePath:(NSString *)outPutFilePath
+                outPutAudioType:(AVFileType)audioType
+                   appendResult:(QtAudioCallBack)callBack
+{
+    // 音频合成器, 创建一个空的素材容器
     AVMutableComposition *composition = [AVMutableComposition composition];
     AVMutableCompositionTrack *audioTrack = [composition addMutableTrackWithMediaType:AVMediaTypeAudio preferredTrackID:0];
     
-    // 4. 向素材容器中, 插入音轨素材
-    [audioTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, audioAsset2.duration) ofTrack:audioAssetTrack2 atTime:kCMTimeZero error:nil];
-    [audioTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, audioAsset1.duration) ofTrack:audioAssetTrack1 atTime:audioAsset2.duration error:nil];
+    for (NSString *filePath  in paths) {
+        // 获取音频源
+        AVURLAsset *audioAsset = [AVURLAsset assetWithURL:[NSURL fileURLWithPath:filePath]];
+        
+        // 获取音频素材中的素材轨道
+        AVAssetTrack *audioAssetTrack = [[audioAsset tracksWithMediaType:AVMediaTypeAudio] firstObject];
+        
+        // 4. 向素材容器中, 插入音轨素材
+        [audioTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, audioAsset.duration) ofTrack:audioAssetTrack atTime:kCMTimeZero error:nil];
+    }
     
-    // 5. 根据合成器, 创建一个导出对象, 并设置导出参数
+    // 根据合成器, 创建一个导出对象, 并设置导出参数
     AVAssetExportSession *session = [[AVAssetExportSession alloc] initWithAsset:composition presetName:AVAssetExportPresetAppleM4A];
-    session.outputURL = [NSURL fileURLWithPath:outputPath];
+    session.outputURL = [NSURL fileURLWithPath:outPutFilePath];
     // 导出类型
-    session.outputFileType = AVFileTypeAppleM4A;
+    session.outputFileType = audioType ?: AVFileTypeAppleM4A;
     
     // 6. 开始导出数据
     [session exportAsynchronouslyWithCompletionHandler:^{
@@ -72,31 +79,31 @@
          AVAssetExportSessionStatusFailed,
          AVAssetExportSessionStatusCancelled
          */
-        switch (status) {
-            case AVAssetExportSessionStatusUnknown:
-                NSLog(@"未知状态");
-                break;
-            case AVAssetExportSessionStatusWaiting:
-                NSLog(@"等待导出");
-                break;
-            case AVAssetExportSessionStatusExporting:
-                NSLog(@"导出中");
-                break;
-            case AVAssetExportSessionStatusCompleted:{
-                
-                NSLog(@"导出成功，路径是：%@", outputPath);
+        if(callBack){
+            switch (status) {
+                case AVAssetExportSessionStatusUnknown:
+                 //   NSLog(@"未知状态");
+                    break;
+                case AVAssetExportSessionStatusWaiting:
+                  //  NSLog(@"等待导出");
+                    break;
+                case AVAssetExportSessionStatusExporting:
+                  //  NSLog(@"导出中");
+                    break;
+                case AVAssetExportSessionStatusCompleted:
+                    callBack(YES,outPutFilePath,@"导出成功");
+                    break;
+                case AVAssetExportSessionStatusFailed:
+                    callBack(NO,@"",@"导出失败");
+                    break;
+                case AVAssetExportSessionStatusCancelled:
+                    callBack(NO,@"",@"取消导出");
+                    break;
+                default:
+                    break;
             }
-                break;
-            case AVAssetExportSessionStatusFailed:
-                
-                NSLog(@"导出失败");
-                break;
-            case AVAssetExportSessionStatusCancelled:
-                NSLog(@"取消导出");
-                break;
-            default:
-                break;
         }
+      
     }];
 }
 

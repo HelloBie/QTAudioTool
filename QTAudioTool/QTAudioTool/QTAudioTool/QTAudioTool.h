@@ -8,15 +8,27 @@
 
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
+
+
+typedef void(^QtAudioCallBack)(BOOL status, NSString *result, NSString *msg);
 NS_ASSUME_NONNULL_BEGIN
 
+/// 音频文件处理相关工具
 @interface QTAudioTool : NSObject
 
 // 从视频文件提取声音
 +(void)getAudioFrom:(NSString *)videoPath outputPath:(NSString *)outputPath;
 
-// 拼接两个音频文件
-+(void)addAudio:(NSString *)fromPath toAudio:(NSString *)toPath outputPath:(NSString *)outputPath;
+/// 音频拼接
+/// - Parameters:
+///   - paths: 需要拼接的音频文件路径,会按照数组顺序从头到尾拼接
+///   - outPutFilePath: 拼接文件的保存路径,包含文件名
+///   - audioType: 导出的文件格式,默认m4a
+///   - callBack: 结果回调
++ (void)qt_AudioAppendWithPaths:(NSArray *)paths
+                 outPutFilePath:(NSString *)outPutFilePath
+                outPutAudioType:(AVFileType)audioType
+                   appendResult:(QtAudioCallBack)callBack;
 
 // 裁剪音频文件
 +(void)cutAudio:(NSString *)audioPath timeRange:(CMTimeRange )timeRange outputPath:(NSString *)outputPath;
