@@ -16,8 +16,16 @@ NS_ASSUME_NONNULL_BEGIN
 /// 音频文件处理相关工具
 @interface QTAudioTool : NSObject
 
-// 从视频文件提取声音
-+(void)getAudioFrom:(NSString *)videoPath outputPath:(NSString *)outputPath;
+/// 从视频提取音频文件
+/// - Parameters:
+///   - videoPath: 视频文件地址
+///   - outputFilePath: 音频文件输出地址
+///   - audioType: 导出的音频文件格式 默认m4a
+///   - callBack: 结果回调
++ (void)qt_getAudioFromVideo:(NSString *)videoPath
+              outputFilePath:(NSString *)outputFilePath
+             outPutAudioType:(AVFileType)audioType
+                appendResult:(QtAudioCallBack)callBack;
 
 /// 音频拼接
 /// - Parameters:

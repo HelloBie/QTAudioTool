@@ -10,17 +10,24 @@
 #import "lame.h"
 @implementation QTAudioTool
 
-// 提取
-+(void)getAudioFrom:(NSString *)videoPath outputPath:(NSString *)outputPath
-{
+/// 从视频提取音频文件
+/// - Parameters:
+///   - videoPath: 视频文件地址
+///   - outputFilePath: 音频文件输出地址
+///   - audioType: 导出的音频文件格式 默认m4a
+///   - callBack: 结果回调
++ (void)qt_getAudioFromVideo:(NSString *)videoPath
+              outputFilePath:(NSString *)outputFilePath
+             outPutAudioType:(AVFileType)audioType
+                appendResult:(QtAudioCallBack)callBack {
+    
     // 1. 获取音频源
     AVURLAsset *asset = [AVURLAsset assetWithURL:[NSURL fileURLWithPath:videoPath]];
     
     // 2. 创建一个音频会话, 并且,设置相应的配置
     AVAssetExportSession *session = [AVAssetExportSession exportSessionWithAsset:asset presetName:AVAssetExportPresetAppleM4A];
-    session.outputFileType = AVFileTypeAppleM4A;
-    session.outputURL = [NSURL fileURLWithPath:outputPath];
-    
+    session.outputFileType = audioType ?: AVFileTypeAppleM4A;
+    session.outputURL = [NSURL fileURLWithPath:outputFilePath];
     session.timeRange = CMTimeRangeMake(kCMTimeZero, asset.duration);
     
     // 3. 导出
@@ -28,10 +35,18 @@
         AVAssetExportSessionStatus status = session.status;
         if (status == AVAssetExportSessionStatusCompleted)
         {
-            NSLog(@"导出成功");
+            callBack(YES,outputFilePath,@"导出成功");
+        }
+        if (status == AVAssetExportSessionStatusFailed)
+        {
+            callBack(NO,@"",@"导出失败");
+        }
+        if (status == AVAssetExportSessionStatusCancelled)
+        {
+            callBack(NO,@"",@"取消导出");
         }
     }];
- 
+    
 }
 
 
